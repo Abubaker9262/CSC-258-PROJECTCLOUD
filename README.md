@@ -1,3 +1,20 @@
+Real-Time Social Media Trend Analysis
+
+A CSC 258 Distributed Systems Project
+
+Overview
+
+This project is a real-time distributed social media trend detection system built using Kafka, Docker, and Google Cloud. The system ingests live social media posts from Bluesky Jetstream, processes trending terms and phrases, stores trend snapshots, and displays the latest trends on a live dashboard.
+
+The architecture follows a distributed microservices design where services communicate independently using Kafka and REST APIs. The system is containerized using Docker and deployed on a Google Cloud Virtual Machine.
+
+Team Members
+Team Member	Contribution
+Soulius Jones	    Survey Paper Writer ,Code Reviewer Report writer
+Abdurrehman Aslam	Code Developer and Survey Paper Reviewer
+Abubaker Sayyed	    Survey Paper Writer, Cloud Deployment,Code Reviewer, containerisation and report Writing
+Fidel Serrano	    Code Developer and Survey Paper Reviewer
+
 System Architecture
 
 The project uses a distributed microservices architecture with the following pipeline:
