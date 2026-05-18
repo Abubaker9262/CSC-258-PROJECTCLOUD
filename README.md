@@ -1,122 +1,198 @@
-# Real Time Social Media Trend Analysis
+Real-Time Social Media Trend Analysis
 
-## A CSC 258 Distributed Systems Project
+A CSC 258 Distributed Systems Project
 
-This project is a real time social media trend detection system. It collects live posts from the website Bluesky and detects trending topics/words.
+Overview
 
-| Team Member           | Role                                        |
-| --------------------- | ------------------------------------------- |
-| **Abdurrehman Aslam** | Code Developer and Survey Paper Reviewer    |
-| **Abubaker Sayyed**   | Contributed to Survey Paper and Code Review |
-| **Fidel Serrano**     | Code Developer and Survey Paper Reviewer    |
-| **Soulius Jones**     | Survey Paper Writer and Code Reviewer       |
+This project is a real-time distributed social media trend detection system built using Kafka, Docker, and Google Cloud. The system ingests live social media posts from Bluesky Jetstream, processes trending terms and phrases, stores trend snapshots, and displays the latest trends on a live dashboard.
 
-## Code Structure
+The architecture follows a distributed microservices design where services communicate independently using Kafka and REST APIs. The system is containerized using Docker and deployed on a Google Cloud Virtual Machine.
 
-https://github.com/fserranox9f/CSC_258_Project.git
+Team Members
+Team Member	Contribution
+Soulius Jones	    Survey Paper Writer ,Code Reviewer Report writer
+Abdurrehman Aslam	Code Developer and Survey Paper Reviewer
+Abubaker Sayyed	    Survey Paper Writer, Cloud Deployment,Code Reviewer, containerisation and report Writing
+Fidel Serrano	    Code Developer and Survey Paper Reviewer
 
-The code is structured into five main components where each component has its own subdirectory.
-The flow of the program is
+System Architecture
 
-ingestion -> broker -> processing -> storage -> dashboard
+The project uses a distributed microservices architecture with the following pipeline:
 
-The ingestion service opens and keeps a continous websocket connectioon to BlueSky servers. It pushes the post read from Bluesky to Kafka Servers. The messages are normalized into a JOSN type.
+ingestion → kafka-broker → processing → storage → dashboard
+Services
+Ingestion Service
 
-The broker service (Kafka) works as a communication layer between the ingestion and processing service. Kafka is in a Docker container and the compose file in the root directory builds an image so services can connect to it locally at port 9092.
+Collects live social media posts from Bluesky Jetstream using WebSocket connections and normalizes incoming data into structured JSON format.
 
-The processing service reads post from the Kafka server and tries to detect/count the most commonly found words in a post. It saves the results to the storage service.
+Kafka Broker
 
-The storage service holds the data produced by the processing service and then is read from the dashboard service. Currently, the data is being saved locally.
+Acts as the distributed message broker between ingestion and processing services. Kafka provides buffering, asynchronous communication, scalability, and fault tolerance.
 
-The dashboard service displays the resulting trends of most popular words in a local webpage.
+Processing Service
 
-```text
-services
-    broker
-        config.py
-    ingestion
-        consumer.py
-        config.py
-        main.py
-        normalize.py
-        producer.py
-        writer.py
-        logs
-            post_dump.json
-    processing
-        consumer.py
-        config.py
-        main.py
-        processor.py
-    storage
-        config.py
-        trend_save.py
-        logs
-            trends.json
-            example_posts.json
-    dashboard
-        index.html
-        styles.css
-        script.js
-```
+Consumes posts from Kafka, extracts trending words and phrases, filters noisy data using stopwords, and generates trend snapshots and example posts.
 
-## Dependencies and Environment
+Storage Service
 
-The project currently uses Python, Docker, Kafka, and Javascript.
+Stores trend snapshots and example posts in JSON format for dashboard visualization.
 
-Python dependencies are listed in `requirements.txt`
+Dashboard Service
 
-Docker is also needed to run the Kafka broker image.
+Displays live trending terms and example posts through a web-based dashboard.
 
-- Operating system: Windows
-- Shell: PowerShell
-- Python runtime: Python 3.11
-- Container runtime: Docker Desktop
-- Message broker: Apache Kafka running in Docker
-- Kafka port: localhost:9092
-- Dashboard server: Python local HTTP server http://localhost:8000/services/dashboard/index.html
+Code Structure
+services/
+│
+├── broker/
+│   └── config.py
+│
+├── ingestion/
+│   ├── consumer.py
+│   ├── producer.py
+│   ├── normalize.py
+│   ├── main.py
+│   └── config.py
+│
+├── processing/
+│   ├── consumer.py
+│   ├── processor.py
+│   ├── main.py
+│   └── config.py
+│
+├── storage/
+│   ├── trend_save.py
+│   ├── config.py
+│   ├── unwanted_words.py
+│   └── logs/
+│       ├── trends.json
+│       └── example_posts.json
+│
+└── dashboard/
+    ├── index.html
+    ├── styles.css
+    └── script.js
 
-## How to Run
+Technologies Used
+Python
+Apache Kafka
+Docker
+Docker Compose
+Flask
+HTML / CSS / JavaScript
+Google Cloud Platform
+PostgreSQL (future storage support)
 
-The following steps and commands were executed at the root level of the project. Since all services executed here run constiounusly, each command is ran in different terminal windows.
+Dependencies and Environment
+Component	Technology
+Programming Language	Python 3.11
+Container Runtime	Docker
+Orchestration	Docker Compose
+Message Broker	Apache Kafka
+Cloud Platform	Google Cloud VM
+Dashboard	HTML/CSS/JavaScript
+Shell	PowerShell / Linux Bash
 
-1. Build and run Docker container for Kafka broker
+Running Locally
+1. Start Kafka Broker
+docker compose up -d broker
+2. Run Ingestion Service
+python -m services.ingestion.main
+3. Run Processing Service
+python -m services.processing.main
+4. Start Local HTTP Server
+python -m http.server 8000
+5. Open Dashboard
+http://localhost:8000/services/dashboard/index.html
 
-```powershell
-    docker compose up -d broker
-```
+Running on Cloud
+1. Open Google Cloud VM
+Google Cloud Console → Compute Engine → VM Instances → SSH
+2. Navigate to Project Directory
+cd ~/CSC_258_Project-kafka-implementation-2.1
+3. Start Docker Services
+docker-compose up -d --build
 
-2. Run the ingestion service.
+This command starts:
 
-```powershell
-    python -m services.ingestion.main
-```
+zookeeper
+kafka-broker
+ingestion
+processing
+storage
+dashboard
+4. Verify Running Containers
+docker-compose ps
 
-3. Run the processing service.
+Expected services:
 
-```powershell
-    python -m services.processing.main
-```
+zookeeper
+kafka-broker
+ingestion
+processing
+dashboard
+5. Restart Services if Kafka Starts Slowly
+docker-compose restart ingestion processing
+6. View Processing Logs
+docker-compose logs -f processing
 
-4. Run the local http server
+Expected output:
 
-```powershell
-    python -m http.server 8000
-```
+Processed X posts
+Saved trend snapshot
+Saved example posts
+Dashboard Access
 
-5. See the local dashboard in a web browser
-   http://localhost:8000/services/dashboard/index.html
+Live Dashboard:
 
-Other
+http://34.58.166.229:8080
+Firewall Configuration
 
-See messages in Kafka
+The following firewall ports must be enabled in Google Cloud:
 
-```powershell
-    docker exec -it broker /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic BlueSky_socialmedia_posts --from-beginning
-```
+Port	Purpose
+22	SSH Access
+8080	Dashboard Access
+9092	Kafka Broker
+Cloud Deployment Features
+Public dashboard access through VM external IP
+Docker containerized services
+Kafka-based distributed messaging
+Real-time dashboard updates
+Independent microservices architecture
+Scalability
 
-Install Python dependencies
+The system supports scalability through:
 
-```powershell
-    pip install -r requirements.txt
-```
+Kafka-based service decoupling
+Independent microservices
+Docker containerization
+Cloud deployment
+Kubernetes-ready architecture for future scaling
+
+Kafka allows ingestion and processing services to scale independently without direct coupling.
+
+Fault Tolerance
+
+The system improves fault tolerance through:
+
+Kafka message buffering
+Independent service restarts
+WebSocket reconnection logic
+Atomic JSON file writing
+Docker container isolation
+
+If processing temporarily fails, Kafka retains messages until consumers recover.
+
+Security
+
+The system includes:
+
+Environment-based configuration
+Input validation
+Service isolation using containers
+Separation of storage and processing logic
+
+Other Useful Commands
+Install Python Dependencies
+pip install -r requirements.txt
